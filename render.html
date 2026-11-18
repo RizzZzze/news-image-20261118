@@ -446,7 +446,7 @@
         <div class="item"><span class="sw" style="background:#188080;"></span><span class="nm">OCEANIA</span></div>
         <div class="item"><span class="sw" style="background:#6B6B6B;"></span><span class="nm">SPACE</span></div>
       </div>
-      <div class="map-foot a">Badges offset with leader lines where pins crowd;</div>
+      <div class="map-foot a">Badges sit on their dots; short leaders mark crowded pins;</div>
       <div class="map-foot b">No. 27 is in space (no pin). Antarctica omitted.</div>
     </div>
     <div class="panel list-panel">
@@ -490,8 +490,9 @@
 <script>
 "use strict";
 /* Schematic world map: equirectangular projection, lat 84..-58 over 352x210.
-   Dots sit at true pin coordinates; badges are relaxed apart but spring
-   back toward their dots and never stray more than 26px from them. */
+   Dots sit at true pin coordinates; badges sit on their dots by default
+   and, where pins crowd, relax apart but never stray more than 10px,
+   with a visible dot and leader showing the true spot. */
 var MW = 352, MH = 210, LAT_TOP = 84, LAT_BOT = -58;
 var REG = {EU:"#2B5AA6", AS:"#BA342C", AF:"#CE7416", NA:"#2A7A4A",
            SA:"#7A4FA3", OC:"#188080", SP:"#6B6B6B"};
@@ -523,23 +524,23 @@ var LAND = [
 ];
 /* Pins: [number, region, lon, lat]. No. 27 is in space and has no pin. */
 var PINS = [
-[1,"AS",56.3,26.6],[2,"EU",36.6,45.3],[3,"AS",114.1,22.5],[4,"AS",34.5,31.4],
-[5,"EU",35.1,47.8],[6,"EU",30.7,36.9],[7,"AS",35.2,31.8],[8,"EU",26.5,45.7],
-[9,"AF",29.5,0.5],[10,"EU",12.6,55.7],[11,"SA",-66.9,10.5],[12,"EU",9.0,51.0],
-[13,"OC",149.1,-35.3],[14,"AS",73.1,33.7],[15,"AS",51.5,25.3],[16,"AF",29.0,-2.5],
-[17,"NA",-74.0,40.7],[18,"EU",24.1,56.9],[19,"AS",77.4,23.3],[20,"NA",-90.5,14.6],
-[21,"EU",30.5,50.4],[22,"SA",-78.5,-1.0],[23,"OC",153.0,-27.5],[24,"OC",151.2,-33.9],
-[25,"OC",145.0,-37.8],[26,"AS",127.0,37.6],[28,"NA",-122.0,37.4],[29,"AS",35.2,31.8],
-[30,"AS",36.3,33.5],[31,"AS",75.8,26.9],[32,"OC",145.0,-37.8],[33,"EU",-2.2,53.5],
+[1,"AS",56.3,26.6],[2,"EU",36.6,45.3],[3,"AS",113.0,23.5],[4,"AS",35.0,31.4],
+[5,"EU",35.1,47.8],[6,"EU",31.0,37.2],[7,"AS",35.5,31.8],[8,"EU",26.5,45.7],
+[9,"AF",29.5,0.5],[10,"EU",12.6,55.7],[11,"SA",-67.5,10.0],[12,"EU",9.0,51.0],
+[13,"OC",148.5,-35.5],[14,"AS",73.1,33.7],[15,"AS",51.5,25.3],[16,"AF",29.0,-2.5],
+[17,"NA",-74.5,41.0],[18,"EU",24.1,56.9],[19,"AS",77.4,23.3],[20,"NA",-89.5,15.2],
+[21,"EU",30.5,50.4],[22,"SA",-78.0,-1.5],[23,"OC",151.5,-27.5],[24,"OC",150.5,-34.0],
+[25,"OC",145.0,-37.0],[26,"AS",127.0,37.6],[28,"NA",-120.75,37.65],[29,"AS",35.5,31.8],
+[30,"AS",36.5,33.8],[31,"AS",75.8,26.9],[32,"OC",145.0,-37.0],[33,"EU",-2.2,53.5],
 [34,"AS",77.2,28.6],[35,"NA",-89.4,43.1]
 ];
 /* Badge seed offsets from each dot, tuned for the crowded clusters. */
-var PIN_OFF = {1:[18,-14],2:[38,20],3:[14,-14],4:[-24,10],5:[34,-14],
-6:[-18,-16],7:[26,-2],8:[-24,16],9:[14,-14],10:[6,-24],11:[-14,-12],
-12:[-26,8],13:[16,-12],14:[-16,-12],15:[20,10],16:[-14,12],17:[16,-10],
-18:[24,-20],19:[12,12],20:[-14,-12],21:[26,14],22:[-14,10],23:[14,-14],
-24:[18,8],25:[-16,8],26:[14,-12],28:[-14,-12],29:[24,14],30:[30,-10],
-31:[-18,8],32:[-18,-14],33:[-30,-18],34:[14,-14],35:[-14,12]};
+var PIN_OFF = {1:[8,-6],2:[8,4],3:[0,0],4:[-6,6],5:[-8,-6],
+6:[-8,-4],7:[0,-10],8:[-10,0],9:[10,0],10:[8,-6],11:[0,0],
+12:[-6,6],13:[-10,2],14:[-8,-8],15:[6,6],16:[-10,0],17:[0,0],
+18:[2,-10],19:[8,8],20:[0,0],21:[10,0],22:[0,0],23:[-8,-6],
+24:[-10,0],25:[-8,-8],26:[0,0],28:[0,0],29:[0,10],30:[10,0],
+31:[-8,4],32:[6,-6],33:[0,-10],34:[8,-4],35:[0,0]};
 function proj(lon, lat) {
   return [(lon + 180) / 360 * MW, (LAT_TOP - lat) / (LAT_TOP - LAT_BOT) * MH];
 }
@@ -550,7 +551,7 @@ function layout() {
     dots[num] = p;
     var off = PIN_OFF[num] || [0, -14], dx = off[0], dy = off[1];
     var d = Math.hypot(dx, dy);
-    if (d > 12) { dx = dx * 12 / d; dy = dy * 12 / d; }
+    if (d > 5) { dx = dx * 5 / d; dy = dy * 5 / d; }
     centers[num] = [p[0] + dx, p[1] + dy];
     order.push(num);
   }
@@ -561,8 +562,8 @@ function layout() {
           var ca = centers[order[a]], cb = centers[order[b]];
           var ddx = cb[0] - ca[0], ddy = cb[1] - ca[1];
           var d = Math.hypot(ddx, ddy);
-          if (d > 0.01 && d < 16) {
-            var push = (16 - d) / 2, ux = ddx / d, uy = ddy / d;
+          if (d > 0.01 && d < 12) {
+            var push = (12 - d) / 2, ux = ddx / d, uy = ddy / d;
             ca[0] -= ux * push; ca[1] -= uy * push;
             cb[0] += ux * push; cb[1] += uy * push;
           }
@@ -573,15 +574,22 @@ function layout() {
         c[0] += (px - c[0]) * spring; c[1] += (py - c[1]) * spring;
         for (var t = 0; t < 2; t++) {
           var ex = c[0] - px, ey = c[1] - py, e = Math.hypot(ex, ey);
-          if (e > 26) { c[0] = px + ex * 26 / e; c[1] = py + ey * 26 / e; }
-          c[0] = Math.min(Math.max(c[0], 8), MW - 8);
-          c[1] = Math.min(Math.max(c[1], 8), MH - 8);
+          if (e > 10) { c[0] = px + ex * 10 / e; c[1] = py + ey * 10 / e; }
+          c[0] = Math.min(Math.max(c[0], 10), MW - 10);
+          c[1] = Math.min(Math.max(c[1], 10), MH - 10);
         }
       }
     }
   }
-  relax(0.06, 150);
-  relax(0, 60);
+  relax(0.08, 200);
+  relax(0, 80);
+  /* Oceania cluster: relaxation drifts badges offshore (5 dots in 8px,
+     land only to the north-west). These centres come from a constrained
+     optimisation: offset <= 10px, centre on land, max min-separation
+     (11.4px). They are fixed, not relaxed. */
+  var PIN_POS = {23:[317.3,157.6], 24:[325.7,165.4], 13:[314.9,169.0],
+                 25:[323.6,176.7], 32:[312.8,180.2]};
+  for (var pn in PIN_POS) { centers[pn] = [PIN_POS[pn][0], PIN_POS[pn][1]]; }
   return {dots: dots, centers: centers};
 }
 (function drawMap() {
@@ -622,20 +630,25 @@ function layout() {
   for (i = 0; i < PINS.length; i++) {
     num = PINS[i][0]; dot = dots[num]; ctr = centers[num];
     el("line", {x1: dot[0], y1: dot[1], x2: ctr[0], y2: ctr[1],
-      stroke: "#181612", "stroke-width": 2});
+      stroke: "#FFFFFF", "stroke-width": 3.5});
+    el("line", {x1: dot[0], y1: dot[1], x2: ctr[0], y2: ctr[1],
+      stroke: "#181612", "stroke-width": 1.8});
+  }
+  for (i = 0; i < PINS.length; i++) {
+    num = PINS[i][0]; dot = dots[num];
+    el("circle", {cx: dot[0], cy: dot[1], r: 3, fill: "#FFFFFF"});
+    el("circle", {cx: dot[0], cy: dot[1], r: 2, fill: "#181612"});
   }
   for (i = 0; i < PINS.length; i++) {
     num = PINS[i][0]; reg = PINS[i][1]; dot = dots[num]; ctr = centers[num];
-    el("circle", {cx: dot[0], cy: dot[1], r: 3, fill: "#FFFFFF"});
-    el("circle", {cx: dot[0], cy: dot[1], r: 2, fill: "#181612"});
     var grp = el("g", {"class": "badge", "data-num": num,
       "data-px": dot[0].toFixed(2), "data-py": dot[1].toFixed(2),
       "data-bx": ctr[0].toFixed(2), "data-by": ctr[1].toFixed(2)});
-    el("circle", {cx: ctr[0], cy: ctr[1], r: 8.5, fill: "#FFFFFF"}, grp);
-    el("circle", {cx: ctr[0], cy: ctr[1], r: 7, fill: REG[reg],
+    el("circle", {cx: ctr[0], cy: ctr[1], r: 6, fill: "#FFFFFF"}, grp);
+    el("circle", {cx: ctr[0], cy: ctr[1], r: 5.5, fill: REG[reg],
       stroke: "#181612", "stroke-width": 1}, grp);
     var num_t = el("text", {x: ctr[0], y: ctr[1], fill: "#FFFFFF",
-      "font-size": 9, "font-weight": 700, "text-anchor": "middle",
+      "font-size": 8, "font-weight": 700, "text-anchor": "middle",
       "dominant-baseline": "central"}, grp);
     num_t.textContent = String(num);
   }
