@@ -45,6 +45,11 @@ REG_TINT = {
     "NA": (210, 234, 220), "SA": (232, 220, 242), "OC": (206, 234, 232),
     "SP": (226, 226, 226),
 }
+REG_DARK = {
+    "EU": (43, 90, 166), "AS": (170, 44, 36), "AF": (158, 86, 10),
+    "NA": (34, 100, 60), "SA": (104, 64, 142), "OC": (14, 98, 98),
+    "SP": (90, 90, 90),
+}
 
 
 class Canvas:
@@ -406,6 +411,7 @@ def draw_chip(cv, cx, cy, r, num, reg):
     cv.disc(cx, cy, r, REG[reg])
     cv.circle(cx, cy, r, INK, 1)
     s = 0.78 if num < 10 else 0.70
+    s *= min(1.0, r / 9.0)
     txt = str(num)
     tw = text_width(txt, s)
     draw_text(cv, txt, cx - tw / 2, cy - 5, s, WHITE, 1.6)
@@ -521,6 +527,21 @@ def _ic(cv, x, y, w, h, reg, fn):
     cv.rect(x, y, w, h, REG_TINT[reg])
     fn(cv, x, y, w, h, reg)
     cv.frame(x, y, w, h, RULE, 1)
+
+
+def draw_icon_panel(cv, x, y, w, h, reg, icon):
+    cv.rect(x, y, w, h, REG_TINT[reg])
+    sq = h - 4
+    sx = x + (w - sq) // 2
+    sy = y + 2
+    mid = y + h // 2
+    cv.hline(x + 8, mid, sx - x - 12, RULE, 1)
+    cv.hline(sx + sq + 4, mid, x + w - 8 - (sx + sq + 4), RULE, 1)
+    cv.disc(x + 8, mid, 3, REG[reg])
+    cv.disc(x + w - 9, mid, 3, REG[reg])
+    cv.rect(sx, sy, sq, sq, WHITE)
+    cv.frame(sx, sy, sq, sq, RULE, 1)
+    ICONS[icon](cv, sx + (sq - 60) // 2, sy + (sq - 60) // 2, 60, 60, reg)
 
 
 def ic_tent(cv, x, y, w, h, reg):
@@ -742,7 +763,7 @@ LAND_POLYS = [
 PIN_OFF = {
     1: (18, -14), 2: (38, 20), 3: (14, -14), 4: (-24, 10), 5: (34, -14),
     6: (-18, -16), 7: (26, -2), 8: (-24, 16), 9: (14, -14), 10: (6, -24),
-    11: (-26, 8), 12: (-14, -12), 13: (16, -12), 14: (-16, -12), 15: (20, 10),
+    11: (-14, -12), 12: (-26, 8), 13: (16, -12), 14: (-16, -12), 15: (20, 10),
     16: (-14, 12), 17: (16, -10), 18: (24, -20), 19: (12, 12), 20: (-14, -12),
     21: (26, 14), 22: (-14, 10), 23: (14, -14), 24: (18, 8), 25: (-16, 8),
     26: (14, -12), 28: (-14, -12), 29: (24, 14), 30: (30, -10), 31: (14, -12),
@@ -825,37 +846,45 @@ def draw_map(cv, x, y, w, h, pins):
 
 
 # ---------------------------------------------------------------- stories
-# (num, region, headline, dek/sublabel, lon, lat, scene/icon key)
-FEATURES = [
-    (1, "AS", "GULF WAR FLARES AGAIN",
-     "US jets hit Qeshm; Iran SAYS drones hit US radar in Bahrain, Kuwait. Tankers burn \u2014 UNVERIFIED.",
+# Mains: (num, region, "REGION • FIELD" label, headline, sub-label, lon, lat, art key)
+# Art keys "gulf"/"bridge"/"summit" are full scenes; the rest are icon keys.
+MAINS = [
+    (1, "AS", "MIDDLE EAST \u2022 IRAN WAR", "GULF WAR FLARES AGAIN",
+     "US jets hit Qeshm; Iran SAYS drones hit US radar in Bahrain, Kuwait \u2014 UNVERIFIED.",
      56.3, 26.6, "gulf"),
-    (2, "EU", "KERCH BRIDGE SPAN FALLS",
-     "Kyiv SAYS the road span fell on night two; Russia hit Kyiv bridges, cutting power and water.",
+    (2, "EU", "EUROPE \u2022 UKRAINE WAR", "KERCH BRIDGE SPAN FALLS",
+     "Kyiv SAYS the span fell on night two; Russia hit Kyiv bridges, cutting power, water.",
      36.6, 45.3, "bridge"),
-    (3, "AS", "TRUMP FLIES TO XI-PUTIN TALKS",
-     "After Marcos talks in Manila, Trump flies to Shenzhen for three-way talks; Putin is there.",
+    (3, "AS", "ASIA \u2022 DIPLOMACY", "TRUMP FLIES TO XI-PUTIN TALKS",
+     "Trump flies to Shenzhen for three-way talks after Manila; Putin is already there.",
      114.1, 22.5, "summit"),
+    (4, "AS", "MIDDLE EAST \u2022 CEASEFIRE", "GAZA TRUCE MAY COLLAPSE",
+     "Peace board warns the UN council the truce may collapse.", 34.5, 31.4, "tent"),
+    (5, "EU", "EUROPE \u2022 UKRAINE WAR", "AID-HUB TOLL RISES TO 40",
+     "Zelenskyy raises the aid-hub strike toll to 40 dead.", 35.1, 47.8, "rubble"),
+    (6, "EU", "EUROPE \u2022 CLIMATE", "COP31: 144 ITEMS DISPUTED",
+     "Antalya talks enter the final stretch; 144 items disputed.", 30.7, 36.9, "globe"),
+    (7, "AS", "MIDDLE EAST \u2022 ISRAEL", "EISENKOT TO FORM GOVT",
+     "President Herzog bypasses Netanyahu to tap Eisenkot.", 35.2, 31.8, "parliament"),
+    (8, "EU", "EUROPE \u2022 EARTHQUAKE", "M5.3 QUAKE HITS ROMANIA",
+     "Deep quake at 00:48 UTC, felt widely, USGS reports.", 26.5, 45.7, "quake"),
+    (9, "AF", "AFRICA \u2022 HEALTH", "EBOLA TOLL PASSES 5,300",
+     "Africa CDC: 5,376 dead, 10,444 cases, no vaccine yet.", 29.5, 0.5, "virus"),
+    (10, "EU", "EUROPE \u2022 FOOTBALL", "HAALAND PEN SINKS DENMARK",
+     "Haaland's 96th-minute penalty seals it; Portugal top group.", 12.6, 55.7, "ball"),
+    (11, "SA", "SOUTH AMERICA \u2022 OIL", "US DETAILS $12BN OIL CASH",
+     "State Dept details $12bn in oil revenue in 53-page report.", -66.9, 10.5, "barrel"),
 ]
-CARDS = [
-    (4, "AS", "GAZA TRUCE MAY COLLAPSE", "Peace board warns UN", 34.5, 31.4, "tent"),
-    (5, "EU", "AID-HUB TOLL RISES TO 40", "Zelenskyy raises count", 35.1, 47.8, "rubble"),
-    (6, "EU", "COP31: 144 ITEMS DISPUTED", "Antalya, final stretch", 30.7, 36.9, "globe"),
-    (7, "AS", "EISENKOT TO FORM GOVT", "Herzog picks Eisenkot", 35.2, 31.8, "parliament"),
-    (8, "EU", "M5.3 QUAKE HITS ROMANIA", "00:48 UTC, deep \u2014 USGS", 26.5, 45.7, "quake"),
-    (9, "AF", "EBOLA TOLL PASSES 5,300", "Africa CDC: 10,444 cases", 29.5, 0.5, "virus"),
-    (10, "EU", "HAALAND PEN SINKS DENMARK", "Norway win; Portugal top", 12.6, 55.7, "ball"),
-    (11, "EU", "FREEZERS HACKED IN EUROPE", "Freezers hit in 7 nations", 9.0, 51.0, "freezer"),
-    (12, "SA", "US DETAILS $12BN OIL CASH", "Venezuela revenue report", -66.9, 10.5, "barrel"),
-    (13, "OC", "PAY GAP BELOW 20% AT LAST", "Australia, first on record", 149.1, -35.3, "scale"),
-    (14, "AS", "PETROL CUT FROM TODAY", "Pakistan: Rs3 off a litre", 73.1, 33.7, "pump"),
-    (15, "AS", "JORDAN BEAT SOCCEROOS 2-0", "Australia's final game", 51.5, 25.3, "score"),
-    (16, "AF", "CONGO PEACE TALKS FAIL", "Fighting goes on in east", 29.0, -2.5, "shield"),
-    (17, "NA", "27 YEARS FOR MURDER PLOT", "Merchant sentenced in US", -74.0, 40.7, "gavel"),
-    (18, "EU", "LATVIA APPROVES CABINET", "Kulbergs wins the vote", 24.1, 56.9, "flagbldg"),
-    (19, "AS", "H5N1 SHOT FOR CHICKENS", "India unveils it Nov 20", 77.4, 23.3, "hen"),
-]
+# List: (num, region, one-line text, lon, lat); 28 items, read down each column.
 LISTITEMS = [
+    (12, "EU", "Freezers hacked across 7 nations", 9.0, 51.0),
+    (13, "OC", "Australia pay gap below 20% at last", 149.1, -35.3),
+    (14, "AS", "Pakistan cuts petrol Rs3 a litre", 73.1, 33.7),
+    (15, "AS", "Jordan beat Socceroos 2-0 in Doha", 51.5, 25.3),
+    (16, "AF", "Congo peace talks fail, fighting on", 29.0, -2.5),
+    (17, "NA", "27 years for US murder plot", -74.0, 40.7),
+    (18, "EU", "Latvia approves Kulbergs cabinet", 24.1, 56.9),
+    (19, "AS", "India unveils H5N1 chicken vaccine", 77.4, 23.3),
     (20, "NA", "Guatemala prosecutor shot, wounded", -90.5, 14.6),
     (21, "EU", "UN: 372 civilians killed in Oct", 30.5, 50.4),
     (22, "SA", "Ecuador fishermen sue Trump team", -78.5, -1.0),
@@ -887,109 +916,108 @@ def build():
     X0, X1 = 18, 1006
     CW = X1 - X0
 
-    # ---- masthead: date dominant, name + counts in support
-    draw_text(cv, "WORLD LEDGER", X0, 20, 1.15, INK, 1.3)
-    draw_text(cv, "39 STORIES \u2014 6 CONTINENTS", X0, 20, 1.15, INK, 1.2, align="right", box_w=CW)
-    cv.hline(X0, 42, CW, INK, 2)
-    draw_text(cv, "WEDNESDAY, 18 NOVEMBER 2026", X0, 48, 2.7, INK, 1.35, align="center", box_w=CW)
-    draw_text(cv, "WAR \u2022 DIPLOMACY \u2022 CLIMATE \u2022 HEALTH \u2022 ECONOMY \u2022 SPORT \u2022 SCIENCE \u2022 SPACE",
-              X0, 94, 0.95, SUB, 1.2, align="center", box_w=CW)
-    cv.hline(X0, 112, CW, INK, 2)
+    # ---- masthead: small name, DOMINANT date, small counts line
+    draw_text(cv, "WORLD LEDGER", X0, 16, 1.0, INK, 1.3, align="center", box_w=CW)
+    ds = 2.9
+    while text_width("WEDNESDAY, 18 NOVEMBER 2026", ds) > CW - 16 and ds > 2.5:
+        ds -= 0.1
+    draw_text(cv, "WEDNESDAY, 18 NOVEMBER 2026", X0, 34, ds, INK, 1.35, align="center", box_w=CW)
+    draw_text(cv, "39 STORIES \u2022 6 CONTINENTS \u2022 ONE DAY",
+              X0, 82, 1.0, SUB, 1.2, align="center", box_w=CW)
+    cv.hline(X0, 100, CW, INK, 2)
 
-    # ---- 3 features
-    fy, fh = 120, 232
-    fw, gap = 320, 14
-    for i, (num, reg, head, dek, lon, lat, scene) in enumerate(FEATURES):
-        fx = X0 + i * (fw + gap)
-        cv.rect(fx, fy, fw, fh, WHITE)
-        cv.frame(fx, fy, fw, fh, INK, 2)
-        ih = 104
-        SCENES[scene](cv, fx + 2, fy + 2, fw - 4, ih)
-        cv.hline(fx + 2, fy + 2 + ih, fw - 4, INK, 2)
-        draw_chip(cv, fx + 20, fy + 20, 13, num, reg)
-        hs = fit_size(head, [1.5, 1.42, 1.34], fw - 16, 2)
-        lines = wrap_lines(head, hs, fw - 16)
-        ly = fy + 2 + ih + 8
-        for ln in lines:
-            draw_text(cv, ln, fx + 8, ly, hs, INK, 1.3)
-            ly += int(14 * hs) + 5
-        ds = 0.90
-        dlines = wrap_lines(dek, ds, fw - 16)[:3]
-        ly += 2
-        for ln in dlines:
-            draw_text(cv, ln, fx + 8, ly, ds, INK, 1.15)
-            ly += 15
-
-    # ---- 16 cards, 4 x 4
-    cy0, ch, cgap = 362, 68, 7
-    cw = 242
-    for i, (num, reg, head, sub, lon, lat, icon) in enumerate(CARDS):
-        cx = X0 + (i % 4) * (cw + cgap)
-        cy = cy0 + (i // 4) * (ch + 5)
-        cv.rect(cx, cy, cw, ch, WHITE)
-        cv.frame(cx, cy, cw, ch, INK, 1)
-        _ic(cv, cx + 3, cy + 3, 54, ch - 6, reg, ICONS[icon])
-        draw_chip(cv, cx + 8, cy + 8, 9, num, reg)
-        tx, tw = cx + 63, cw - 63 - 6
-        hs = fit_size(head, [1.12, 1.05, 0.98, 0.9], tw, 2)
-        lines = wrap_lines(head, hs, tw)
-        ly = cy + 7
+    # ---- 11 mains in 3 rows (3 + 4 + 4): illustration, REGION • FIELD
+    # ---- label, bold headline, 2-line sub-label. All framed.
+    def draw_main(num, reg, label, head, sub, art, x, y, w, h, big):
+        cv.rect(x, y, w, h, WHITE)
+        cv.frame(x, y, w, h, INK, 2)
+        ih = 92 if big else 64
+        if art in SCENES:
+            SCENES[art](cv, x + 2, y + 2, w - 4, ih)
+        else:
+            draw_icon_panel(cv, x + 2, y + 2, w - 4, ih, reg, art)
+        cv.hline(x + 2, y + 2 + ih, w - 4, INK, 2)
+        draw_chip(cv, x + 20, y + 20, 13 if big else 10, num, reg)
+        ls = 0.85 if big else 0.78
+        draw_text(cv, label, x + 8, y + 2 + ih + 6, ls, REG_DARK[reg], 1.3)
+        hs = fit_size(head, [1.5, 1.42, 1.34] if big else [1.12, 1.05, 0.98], w - 16, 2)
+        lines = wrap_lines(head, hs, w - 16)
+        ly = y + 2 + ih + 6 + int(14 * ls) + 6
         for ln in lines[:2]:
-            draw_text(cv, ln, tx, ly, hs, INK, 1.3)
-            ly += int(14 * hs) + 4
-        ss = 0.90
-        while text_width(sub, ss) > tw - 12 and ss > 0.70:
+            draw_text(cv, ln, x + 8, ly, hs, INK, 1.3)
+            ly += int(14 * hs) + 5
+        ss = 0.88 if big else 0.84
+        while len(wrap_lines(sub, ss, w - 16)) > 2 and ss > 0.76:
             ss -= 0.04
-        draw_text(cv, sub, tx, cy + ch - 16, ss, SUB, 1.45)
+        ly += 1
+        for ln in wrap_lines(sub, ss, w - 16)[:2]:
+            draw_text(cv, ln, x + 8, ly, ss, SUB, 1.45)
+            ly += 13
 
-    # ---- bottom: map + dense 2-column list
-    by0, bh = 658, 322
+    ry, rh, rw, gap = 108, 200, 320, 14
+    for i in range(3):
+        num, reg, label, head, sub, lon, lat, art = MAINS[i]
+        draw_main(num, reg, label, head, sub, art, X0 + i * (rw + gap), ry, rw, rh, True)
+    rw2, gap2, rh2 = 242, 7, 165
+    for r in range(2):
+        ry2 = 316 + r * (rh2 + 8)
+        for c in range(4):
+            num, reg, label, head, sub, lon, lat, art = MAINS[3 + r * 4 + c]
+            draw_main(num, reg, label, head, sub, art, X0 + c * (rw2 + gap2), ry2, rw2, rh2, False)
+
+    # ---- bottom: map + 28-item roll call, 2 columns of 14
+    by0, bh = 662, 306
     mw = 360
     mx = X0
     cv.rect(mx, by0, mw, bh, WHITE)
     cv.frame(mx, by0, mw, bh, INK, 2)
     draw_text(cv, "WHERE IT HAPPENED", mx + 8, by0 + 8, 1.15, INK, 1.3)
     draw_text(cv, "SCHEMATIC MAP", mx + 8, by0 + 8, 0.85, SUB, 1.2, align="right", box_w=mw - 16)
-    pins = [(n, r, lo, la) for (n, r, _h, _s, lo, la, _k) in FEATURES + CARDS]
+    pins = [(n, r, lo, la) for (n, r, _lb, _h, _s, lo, la, _k) in MAINS]
     pins += [(n, r, lo, la) for (n, r, _t, lo, la) in LISTITEMS if lo is not None]
-    draw_map(cv, mx + 4, by0 + 30, mw - 8, 224, pins)
-    # legend: 6 regions, two rows of three
-    lx, ly = mx + 10, by0 + 262
-    regs = ["EU", "AS", "AF", "NA", "SA", "OC"]
+    draw_map(cv, mx + 4, by0 + 30, mw - 8, 210, pins)
+    # legend: 7 entries (6 regions + space), two rows of four/three
+    lx, ly = mx + 10, by0 + 246
+    regs = ["EU", "AS", "AF", "NA", "SA", "OC", "SP"]
     for i, r in enumerate(regs):
-        gx = lx + (i % 3) * 118
-        gy = ly + (i // 3) * 15
+        gx = lx + (i % 4) * 86
+        gy = ly + (i // 4) * 15
         cv.rect(gx, gy, 11, 11, REG[r])
         cv.frame(gx, gy, 11, 11, INK, 1)
-        draw_text(cv, REG_NAME[r], gx + 15, gy, 0.8, INK, 1.2)
-    draw_text(cv, "Badges offset with leader lines where pins crowd;", mx + 8, by0 + 292, 0.75, SUB, 1.3)
-    draw_text(cv, "No. 27 is in space (no pin). Antarctica omitted.", mx + 8, by0 + 303, 0.75, SUB, 1.3)
+        draw_text(cv, REG_NAME[r], gx + 15, gy, 0.75, INK, 1.2)
+    draw_text(cv, "Badges offset with leader lines where pins crowd;", mx + 8, by0 + 276, 0.75, SUB, 1.3)
+    draw_text(cv, "No. 27 is in space (no pin). Antarctica omitted.", mx + 8, by0 + 289, 0.75, SUB, 1.3)
 
     lx0 = mx + mw + 10
     lw = X1 - lx0
     cv.rect(lx0, by0, lw, bh, WHITE)
     cv.frame(lx0, by0, lw, bh, INK, 2)
-    draw_text(cv, "THE DAY IN 20 MORE STORIES", lx0 + 8, by0 + 8, 1.15, INK, 1.3)
+    draw_text(cv, "ALSO ON WEDNESDAY 18 NOVEMBER", lx0 + 8, by0 + 8, 1.15, INK, 1.3)
     col_w = (lw - 16 - 10) // 2
-    row_h, row_y0 = 29, by0 + 34
+    row_h, row_y0 = 19, by0 + 30
     for i, (num, reg, text, lon, lat) in enumerate(LISTITEMS):
-        col = i // 10
-        row = i % 10
+        col = i // 14
+        row = i % 14
         rx = lx0 + 8 + col * (col_w + 10)
         ry = row_y0 + row * row_h
-        draw_chip(cv, rx + 10, ry + 13, 9, num, reg)
-        ss = 0.85
-        while text_width(text, ss) > col_w - 28 and ss > 0.72:
+        draw_chip(cv, rx + 10, ry + 9, 8, num, reg)
+        ss = 0.82
+        while text_width(text, ss) > col_w - 26 and ss > 0.72:
             ss -= 0.03
-        draw_text(cv, text, rx + 26, ry + 6, ss, INK, 1.3)
-        if row < 9:
-            cv.hline(rx, ry + row_h - 2, col_w, (214, 202, 172), 1)
+        draw_text(cv, text, rx + 24, ry + 4, ss, INK, 1.3)
+        if row < 13:
+            cv.hline(rx, ry + row_h - 1, col_w, (214, 202, 172), 1)
 
-    # ---- footer
-    draw_text(cv, "Sources: Reuters, AP, Al Jazeera, BBC, USGS, NOAA, Africa CDC, UN, IANS, Nature.",
-              X0, 986, 0.74, SUB, 1.3, align="center", box_w=CW)
-    draw_text(cv, "SAYS, ALLEGED and UNVERIFIED mark attributed claims. Drawn by program; no photographs.",
-              X0, 999, 0.74, SUB, 1.3, align="center", box_w=CW)
+    # ---- footer: dating sentence + explicit sources (only outlets used)
+    draw_text(cv, "Every story was reported on Wednesday 18 November 2026; disputed claims are attributed.",
+              X0, 973, 0.72, SUB, 1.3, align="center", box_w=CW)
+    src = ("Sources: AAP, Africa CDC, Al Jazeera, AppiSToS, Daily Baku, DevDiscourse, IANS, "
+           "Independent, Jawawa, Media Alert, Medianet, Munich Eye, NY Post, NationPress, "
+           "Nature, NewsTrend, NOAA, Paris Eye, Pollar, Socceroos, Stadium Astro, TBS, UN, USGS.")
+    sy = 987
+    for ln in wrap_lines(src, 0.70, CW):
+        draw_text(cv, ln, X0, sy, 0.70, SUB, 1.3, align="center", box_w=CW)
+        sy += 13
     return cv
 
 
