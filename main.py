@@ -1011,13 +1011,12 @@ def build():
         if row < 11:
             cv.hline(rx, ry + row_h - 1, col_w, (214, 202, 172), 1)
 
-    # ---- footer: EXACTLY 2 lines (dating sentence + one-line sources)
+    # ---- footer: EXACTLY 2 lines (dating sentence + main sources, 8 outlets)
     draw_text(cv, "Every story was reported on Wednesday 18 November 2026; disputed claims are attributed.",
               X0, 974, 0.78, SUB, 1.3, align="center", box_w=CW)
-    src = ("Sources: AAP, Al Jazeera, AppiSToS, DevDiscourse, IANS, Jawawa, Media Alert, "
-           "Medianet, Munich Eye, NationPress, Nature, NewsTrend, NOAA, Paris Eye, Pollar, "
-           "Socceroos, Stadium Astro, USGS.")
-    ss = 0.56
+    src = ("Main sources: Al Jazeera, AppiSToS, IANS, Media Alert, "
+           "Medianet, Nature, NewsTrend, Paris Eye.")
+    ss = 0.76
     while text_width(src, ss) > CW - 8 and ss > 0.50:
         ss -= 0.02
     draw_text(cv, src, X0, 991, ss, SUB, 1.3, align="center", box_w=CW)
