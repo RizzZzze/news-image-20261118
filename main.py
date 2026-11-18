@@ -850,10 +850,10 @@ def draw_map(cv, x, y, w, h, pins):
 # Art keys "gulf"/"bridge"/"summit" are full scenes; the rest are icon keys.
 MAINS = [
     (1, "AS", "MIDDLE EAST \u2022 IRAN WAR", "GULF WAR FLARES AGAIN",
-     "US jets hit Qeshm; Iran SAYS drones hit US radar in Bahrain, Kuwait \u2014 UNVERIFIED.",
+     "US SAYS jets hit Qeshm; Iran SAYS drones hit US radar, Bahrain, Kuwait. UNVERIFIED.",
      56.3, 26.6, "gulf"),
     (2, "EU", "EUROPE \u2022 UKRAINE WAR", "KERCH BRIDGE SPAN FALLS",
-     "Kyiv SAYS the span fell on night two; Russia hit Kyiv bridges, cutting power, water.",
+     "Kyiv SAYS: span fell on night two; Russian hits on Kyiv bridges cut power, water.",
      36.6, 45.3, "bridge"),
     (3, "AS", "ASIA \u2022 DIPLOMACY", "TRUMP FLIES TO XI-PUTIN TALKS",
      "Trump flies to Shenzhen for three-way talks after Manila; Putin is already there.",
@@ -865,7 +865,7 @@ MAINS = [
     (6, "EU", "EUROPE \u2022 CLIMATE", "COP31: 144 ITEMS DISPUTED",
      "Antalya talks enter the final stretch; 144 items disputed.", 30.7, 36.9, "globe"),
     (7, "AS", "MIDDLE EAST \u2022 ISRAEL", "EISENKOT TO FORM GOVT",
-     "President Herzog bypasses Netanyahu to tap Eisenkot.", 35.2, 31.8, "parliament"),
+     "Herzog asks Eisenkot to form Israel's next government.", 35.2, 31.8, "parliament"),
     (8, "EU", "EUROPE \u2022 EARTHQUAKE", "M5.3 QUAKE HITS ROMANIA",
      "Deep quake at 00:48 UTC, felt widely, USGS reports.", 26.5, 45.7, "quake"),
     (9, "AF", "AFRICA \u2022 HEALTH", "EBOLA TOLL PASSES 5,300",
@@ -881,29 +881,29 @@ LISTITEMS = [
     (13, "OC", "Australia pay gap below 20% at last", 149.1, -35.3),
     (14, "AS", "Pakistan cuts petrol Rs3 a litre", 73.1, 33.7),
     (15, "AS", "Jordan beat Socceroos 2-0 in Doha", 51.5, 25.3),
-    (16, "AF", "Congo peace talks fail, fighting on", 29.0, -2.5),
+    (16, "AF", "Congo war goes on despite peace bids", 29.0, -2.5),
     (17, "NA", "27 years for US murder plot", -74.0, 40.7),
     (18, "EU", "Latvia approves Kulbergs cabinet", 24.1, 56.9),
-    (19, "AS", "India unveils H5N1 chicken vaccine", 77.4, 23.3),
+    (19, "AS", "India to unveil H5N1 vaccine Nov 20", 77.4, 23.3),
     (20, "NA", "Guatemala prosecutor shot, wounded", -90.5, 14.6),
     (21, "EU", "UN: 372 civilians killed in Oct", 30.5, 50.4),
     (22, "SA", "Ecuador fishermen sue Trump team", -78.5, -1.0),
     (23, "OC", "One Nation: cut intake by 90%", 153.0, -27.5),
-    (24, "OC", "54% of Australians worse off", 151.2, -33.9),
+    (24, "OC", "Salvos: 54% of Australians worse off", 151.2, -33.9),
     (25, "OC", "Antibiotic-resistance week opens", 145.0, -37.8),
-    (26, "AS", "7 in 10 S. Koreans back cohabiting", 127.0, 37.6),
+    (26, "AS", "7 in 10 S. Koreans accept cohabiting", 127.0, 37.6),
     (27, "SP", "C7.2 solar flare at 00:37 UTC", None, None),
     (28, "NA", "Nvidia board: no Huang return", -122.0, 37.4),
     (29, "AS", "Knesset elects Kahana speaker", 35.2, 31.8),
-    (30, "AS", "Pakistan condemns Syria strikes", 36.3, 33.5),
+    (30, "AS", "Pakistan condemns Israel raids in Syria", 36.3, 33.5),
     (31, "AS", "Modi gifts Kashmiri carpet", 121.0, 14.6),
     (32, "AS", "28 ALLEGED drone handlers named", 75.8, 26.9),
-    (33, "OC", "Brain-pressure cases up 7-fold", 145.0, -37.8),
-    (34, "OC", "10m trained in mental first aid", 138.6, -34.9),
-    (35, "AF", "Sudan factories struggle post-war", 32.5, 15.6),
+    (33, "OC", "Study: brain-pressure cases up 7-fold", 145.0, -37.8),
+    (34, "OC", "10m trained in mental-health first aid", 138.6, -34.9),
+    (35, "AF", "War-damaged Sudan factories struggle", 32.5, 15.6),
     (36, "EU", "Rooney: I thought of suicide", -2.2, 53.5),
     (37, "EU", "Gabriel, 16, quits Man Utd", -2.2, 53.5),
-    (38, "AS", "Phages kill resistant Klebsiella", 77.2, 28.6),
+    (38, "AS", "Phages kill resistant Klebsiella in lab", 77.2, 28.6),
     (39, "NA", "Blood test spots colon return early", -89.4, 43.1),
 ]
 SCENES = {"gulf": scene_gulf, "bridge": scene_bridge, "summit": scene_summit}
@@ -1008,16 +1008,16 @@ def build():
         if row < 13:
             cv.hline(rx, ry + row_h - 1, col_w, (214, 202, 172), 1)
 
-    # ---- footer: dating sentence + explicit sources (only outlets used)
+    # ---- footer: EXACTLY 2 lines (dating sentence + one-line sources)
     draw_text(cv, "Every story was reported on Wednesday 18 November 2026; disputed claims are attributed.",
-              X0, 973, 0.72, SUB, 1.3, align="center", box_w=CW)
-    src = ("Sources: AAP, Africa CDC, Al Jazeera, AppiSToS, Daily Baku, DevDiscourse, IANS, "
-           "Independent, Jawawa, Media Alert, Medianet, Munich Eye, NY Post, NationPress, "
-           "Nature, NewsTrend, NOAA, Paris Eye, Pollar, Socceroos, Stadium Astro, TBS, UN, USGS.")
-    sy = 987
-    for ln in wrap_lines(src, 0.70, CW):
-        draw_text(cv, ln, X0, sy, 0.70, SUB, 1.3, align="center", box_w=CW)
-        sy += 13
+              X0, 974, 0.78, SUB, 1.3, align="center", box_w=CW)
+    src = ("Sources: AAP, Al Jazeera, AppiSToS, DevDiscourse, IANS, Jawawa, Media Alert, "
+           "Medianet, Munich Eye, NationPress, Nature, NewsTrend, NOAA, Paris Eye, Pollar, "
+           "Socceroos, Stadium Astro, USGS.")
+    ss = 0.56
+    while text_width(src, ss) > CW - 8 and ss > 0.50:
+        ss -= 0.02
+    draw_text(cv, src, X0, 991, ss, SUB, 1.3, align="center", box_w=CW)
     return cv
 
 
