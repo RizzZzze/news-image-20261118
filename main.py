@@ -766,9 +766,8 @@ PIN_OFF = {
     11: (-14, -12), 12: (-26, 8), 13: (16, -12), 14: (-16, -12), 15: (20, 10),
     16: (-14, 12), 17: (16, -10), 18: (24, -20), 19: (12, 12), 20: (-14, -12),
     21: (26, 14), 22: (-14, 10), 23: (14, -14), 24: (18, 8), 25: (-16, 8),
-    26: (14, -12), 28: (-14, -12), 29: (24, 14), 30: (30, -10), 31: (14, -12),
-    32: (-18, 8), 33: (-18, -14), 34: (-14, -12), 35: (14, -12), 36: (-30, -18),
-    37: (-8, -26), 38: (14, -14), 39: (-14, 12),
+    26: (14, -12), 28: (-14, -12), 29: (24, 14), 30: (30, -10), 31: (-18, 8),
+    32: (-18, -14), 33: (-30, -18), 34: (14, -14), 35: (-14, 12),
 }
 
 
@@ -875,7 +874,7 @@ MAINS = [
     (11, "SA", "SOUTH AMERICA \u2022 OIL", "US DETAILS $12BN OIL CASH",
      "State Dept details $12bn in oil revenue in 53-page report.", -66.9, 10.5, "barrel"),
 ]
-# List: (num, region, one-line text, lon, lat); 28 items, read down each column.
+# List: (num, region, one-line text, lon, lat); 24 items, read down each column.
 LISTITEMS = [
     (12, "EU", "Freezers hacked across 7 nations", 9.0, 51.0),
     (13, "OC", "Australia pay gap below 20% at last", 149.1, -35.3),
@@ -895,16 +894,12 @@ LISTITEMS = [
     (27, "SP", "C7.2 solar flare at 00:37 UTC", None, None),
     (28, "NA", "Nvidia board: no Huang return", -122.0, 37.4),
     (29, "AS", "Knesset elects Kahana speaker", 35.2, 31.8),
-    (30, "AS", "Pakistan condemns Israel raids in Syria", 36.3, 33.5),
-    (31, "AS", "Modi gifts Kashmiri carpet", 121.0, 14.6),
-    (32, "AS", "28 ALLEGED drone handlers named", 75.8, 26.9),
-    (33, "OC", "Study: brain-pressure cases up 7-fold", 145.0, -37.8),
-    (34, "OC", "10m trained in mental-health first aid", 138.6, -34.9),
-    (35, "AF", "War-damaged Sudan factories struggle", 32.5, 15.6),
-    (36, "EU", "Rooney: I thought of suicide", -2.2, 53.5),
-    (37, "EU", "Gabriel, 16, quits Man Utd", -2.2, 53.5),
-    (38, "AS", "Phages kill resistant Klebsiella in lab", 77.2, 28.6),
-    (39, "NA", "Blood test spots colon return early", -89.4, 43.1),
+    (30, "AS", "Pakistan condemns Israel's Syria raids", 36.3, 33.5),
+    (31, "AS", "28 ALLEGED drone handlers named", 75.8, 26.9),
+    (32, "OC", "Study: brain-pressure cases up 7-fold", 145.0, -37.8),
+    (33, "EU", "Rooney: I thought of suicide", -2.2, 53.5),
+    (34, "AS", "Phages kill resistant Klebsiella in lab", 77.2, 28.6),
+    (35, "NA", "Blood test spots colon return early", -89.4, 43.1),
 ]
 SCENES = {"gulf": scene_gulf, "bridge": scene_bridge, "summit": scene_summit}
 
@@ -922,9 +917,18 @@ def build():
     while text_width("WEDNESDAY, 18 NOVEMBER 2026", ds) > CW - 16 and ds > 2.5:
         ds -= 0.1
     draw_text(cv, "WEDNESDAY, 18 NOVEMBER 2026", X0, 34, ds, INK, 1.35, align="center", box_w=CW)
-    draw_text(cv, "39 STORIES \u2022 6 CONTINENTS \u2022 ONE DAY",
+    draw_text(cv, "35 STORIES \u2022 6 CONTINENTS \u2022 ONE DAY",
               X0, 82, 1.0, SUB, 1.2, align="center", box_w=CW)
     cv.hline(X0, 100, CW, INK, 2)
+
+    # uniform sub-label size per tier (consistent per tier, no truncation)
+    def _fit_sub(sub, w, start):
+        ss = start
+        while len(wrap_lines(sub, ss, w)) > 2 and ss > 0.76:
+            ss -= 0.04
+        return ss
+    SUB_BIG = min(_fit_sub(m[4], 304, 0.88) for m in MAINS[:3])
+    SUB_SMALL = min(_fit_sub(m[4], 226, 0.84) for m in MAINS[3:])
 
     # ---- 11 mains in 3 rows (3 + 4 + 4): illustration, REGION • FIELD
     # ---- label, bold headline, 2-line sub-label. All framed.
@@ -946,9 +950,7 @@ def build():
         for ln in lines[:2]:
             draw_text(cv, ln, x + 8, ly, hs, INK, 1.3)
             ly += int(14 * hs) + 5
-        ss = 0.88 if big else 0.84
-        while len(wrap_lines(sub, ss, w - 16)) > 2 and ss > 0.76:
-            ss -= 0.04
+        ss = SUB_BIG if big else SUB_SMALL
         ly += 1
         for ln in wrap_lines(sub, ss, w - 16)[:2]:
             draw_text(cv, ln, x + 8, ly, ss, SUB, 1.45)
@@ -965,7 +967,7 @@ def build():
             num, reg, label, head, sub, lon, lat, art = MAINS[3 + r * 4 + c]
             draw_main(num, reg, label, head, sub, art, X0 + c * (rw2 + gap2), ry2, rw2, rh2, False)
 
-    # ---- bottom: map + 28-item roll call, 2 columns of 14
+    # ---- bottom: map + 24-item roll call, 2 columns of 12
     by0, bh = 662, 306
     mw = 360
     mx = X0
@@ -994,18 +996,19 @@ def build():
     cv.frame(lx0, by0, lw, bh, INK, 2)
     draw_text(cv, "ALSO ON WEDNESDAY 18 NOVEMBER", lx0 + 8, by0 + 8, 1.15, INK, 1.3)
     col_w = (lw - 16 - 10) // 2
-    row_h, row_y0 = 19, by0 + 30
+    row_h, row_y0 = 23, by0 + 30
+    # uniform list size: one size for every row (consistent per tier)
+    lss = 0.82
+    while any(text_width(t, lss) > col_w - 26 for (_n, _r, t, _lo, _la) in LISTITEMS) and lss > 0.72:
+        lss -= 0.03
     for i, (num, reg, text, lon, lat) in enumerate(LISTITEMS):
-        col = i // 14
-        row = i % 14
+        col = i // 12
+        row = i % 12
         rx = lx0 + 8 + col * (col_w + 10)
         ry = row_y0 + row * row_h
-        draw_chip(cv, rx + 10, ry + 9, 8, num, reg)
-        ss = 0.82
-        while text_width(text, ss) > col_w - 26 and ss > 0.72:
-            ss -= 0.03
-        draw_text(cv, text, rx + 24, ry + 4, ss, INK, 1.3)
-        if row < 13:
+        draw_chip(cv, rx + 10, ry + 11, 8, num, reg)
+        draw_text(cv, text, rx + 24, ry + 4, lss, INK, 1.3)
+        if row < 11:
             cv.hline(rx, ry + row_h - 1, col_w, (214, 202, 172), 1)
 
     # ---- footer: EXACTLY 2 lines (dating sentence + one-line sources)
