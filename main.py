@@ -1,22 +1,29 @@
 #!/usr/bin/env python3
-"""Copy the rendered newspaper image to the output directory.
+"""Deliver the front-page image for news-image-20261118.
 
-The entry image lives in this repository as entry.png (rendered from
-render.html by render.sh). This program only copies it, so repeated
-runs write identical bytes.
+The page is drawn once, by hand, as render.html and screenshotted to
+entry.png with headless Chromium (see render.sh). At grading time this
+program only places that exact image at the output path the harness
+names, so repeated runs always write identical bytes.
 """
+
 import os
 import shutil
+from pathlib import Path
 
 
-def main():
-    here = os.path.dirname(os.path.abspath(__file__))
-    src = os.path.join(here, "entry.png")
-    outdir = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
-    os.makedirs(outdir, exist_ok=True)
-    dst = os.path.join(outdir, "entry.png")
-    shutil.copyfile(src, dst)
-    print(dst)
+def place_image() -> Path:
+    repo_root = Path(__file__).resolve().parent
+    image = repo_root / "entry.png"
+    out_dir = Path(os.environ.get("MAKEFUN_OUTPUT_DIR", "/output"))
+    out_dir.mkdir(parents=True, exist_ok=True)
+    target = out_dir / "entry.png"
+    shutil.copyfile(image, target)
+    return target
+
+
+def main() -> None:
+    print(place_image())
 
 
 if __name__ == "__main__":
